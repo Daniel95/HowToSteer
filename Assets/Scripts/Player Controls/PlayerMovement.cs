@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 
 public class PlayerMovement : MonoBehaviour, IMoveAble {
@@ -17,16 +18,29 @@ public class PlayerMovement : MonoBehaviour, IMoveAble {
 
     void Awake() {
         rb = GetComponent<Rigidbody>();
+        GetComponent<WaitForLevelLoaded>().startPlaying += StartPlayerMovement;
     }
 
-	// Update is called once per frame
-	void FixedUpdate () {
-        if (moveSpeed < maxMovementSpeed)
-            moveSpeed *= movementIncreaseMultiplier;
+    void OnDisable()
+    {
+        GetComponent<WaitForLevelLoaded>().startPlaying -= StartPlayerMovement;
+    }
 
+    private void StartPlayerMovement()
+    {
+        StartCoroutine(UpdatePlayerMovement());
+    }
 
-        //add our own constant force, without removing the gravity of our rigidbodys
-        rb.velocity = transform.forward * moveSpeed + new Vector3(0, rb.velocity.y, 0);
+    IEnumerator UpdatePlayerMovement() {
+        while (true) {
+            if (moveSpeed < maxMovementSpeed)
+                moveSpeed *= movementIncreaseMultiplier;
+
+            //add our own constant force, without removing the gravity of our rigidbodys
+            rb.velocity = transform.forward * moveSpeed + new Vector3(0, rb.velocity.y, 0);
+
+            yield return new WaitForFixedUpdate();
+        }
     }
 
     public void AddMovementY(float _strength) {

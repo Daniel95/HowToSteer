@@ -27,12 +27,22 @@ public class DestructionLine : MonoBehaviour {
     {
         meshSpawner = FindObjectOfType<MeshSpawner>();
         mapChunkSize = FindObjectOfType<MapGenerator>().MapChunkSize;
+
+        GetComponent<WaitForLevelLoaded>().startPlaying += StartDestructionLineScript;
+
         halfMapChunkSize = mapChunkSize / 2;
 
         oldChunkPosition = new Vector2(0,0);
         oldLocalPosition = new Vector2(halfMapChunkSize - 10, halfMapChunkSize);
+    }
 
-        StartCoroutine(BeginningHeadStart()); 
+    void OnDisable() {
+        GetComponent<WaitForLevelLoaded>().startPlaying -= StartDestructionLineScript;
+    }
+
+    void StartDestructionLineScript()
+    {
+        StartCoroutine(BeginningHeadStart());
     }
 
     IEnumerator BeginningHeadStart() {

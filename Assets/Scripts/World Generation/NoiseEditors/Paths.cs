@@ -38,22 +38,16 @@ public static class Paths
             {
                 foreach (Vector2 _offset in pathWidthExtension.Keys)
                 {
-                    try
-                    {
+                    if(yPosition - _pathWidth + (int)_offset.y > 0 && yPosition - _pathWidth + (int)_offset.y <= _mapChunkSize)
                         MapGenerator.mapDataContainer[_startChunkCoords + new Vector2(chunkOffset.x, chunkOffset.y * -1)].noiseMap[_mapChunkSize, yPosition - _pathWidth + (int)_offset.y] = _heightValue;
-                    }
-                    catch { };
                 }
 
                 chunkOffset += new Vector2(1, 0);
 
                 foreach (Vector2 _offset in pathWidthExtension.Keys)
                 {
-                    try
-                    {
+                    if (yPosition - _pathWidth + (int)_offset.y > 0 && yPosition - _pathWidth + (int)_offset.y <= _mapChunkSize)
                         MapGenerator.mapDataContainer[_startChunkCoords + new Vector2(chunkOffset.x, chunkOffset.y * -1)].noiseMap[0, yPosition - _pathWidth + (int)_offset.y] = _heightValue;
-                    }
-                    catch { };
                 }
             }
 
@@ -62,11 +56,8 @@ public static class Paths
             {
                 foreach (Vector2 _offset in pathWidthExtension.Keys)
                 {
-                    try
-                    {
+                    if (yPosition - _pathWidth + (int)_offset.y > 0 && yPosition - _pathWidth + (int)_offset.y <= _mapChunkSize)
                         MapGenerator.mapDataContainer[_startChunkCoords + new Vector2(chunkOffset.x, chunkOffset.y * -1)].noiseMap[0, yPosition - _pathWidth + (int)_offset.y] = _heightValue;
-                    }
-                    catch { };
                 }
 
                 chunkOffset += new Vector2(-1, 0);
@@ -74,11 +65,8 @@ public static class Paths
 
                 foreach (Vector2 _offset in pathWidthExtension.Keys)
                 {
-                    try
-                    {
+                    if (yPosition - _pathWidth + (int)_offset.y > 0 && yPosition - _pathWidth + (int)_offset.y <= _mapChunkSize)
                         MapGenerator.mapDataContainer[_startChunkCoords + new Vector2(chunkOffset.x, chunkOffset.y * -1)].noiseMap[_mapChunkSize, yPosition - _pathWidth + (int)_offset.y] = _heightValue;
-                    }
-                    catch { };
                 }
             }
 
@@ -87,22 +75,16 @@ public static class Paths
             {
                 foreach (Vector2 _offset in pathWidthExtension.Keys)
                 {
-                    try
-                    {
+                    if (xPosition - _pathWidth + (int)_offset.x > 0 && xPosition - _pathWidth + (int)_offset.x <= _mapChunkSize)
                         MapGenerator.mapDataContainer[_startChunkCoords + new Vector2(chunkOffset.x, chunkOffset.y * -1)].noiseMap[xPosition - _pathWidth + (int)_offset.x, _mapChunkSize] = _heightValue;
-                    }
-                    catch { };
                 }
 
                 chunkOffset += new Vector2(0, 1);
 
                 foreach (Vector2 _offset in pathWidthExtension.Keys)
                 {
-                    try
-                    {
+                    if (xPosition - _pathWidth + (int)_offset.x > 0 && xPosition - _pathWidth + (int)_offset.x <= _mapChunkSize)
                         MapGenerator.mapDataContainer[_startChunkCoords + new Vector2(chunkOffset.x, chunkOffset.y * -1)].noiseMap[xPosition - _pathWidth + (int)_offset.x, 0] = _heightValue;
-                    }
-                    catch { };
                 }
             }
 
@@ -111,28 +93,31 @@ public static class Paths
             {
                 foreach (Vector2 _offset in pathWidthExtension.Keys)
                 {
-                    try
-                    {
+                    if (xPosition - _pathWidth + (int)_offset.x > 0 && xPosition - _pathWidth + (int)_offset.x <= _mapChunkSize)
                         MapGenerator.mapDataContainer[_startChunkCoords + new Vector2(chunkOffset.x, chunkOffset.y * -1)].noiseMap[xPosition - _pathWidth + (int)_offset.x, 0] = _heightValue;
-                    }
-                    catch { };
                 }
 
                 chunkOffset += new Vector2(0, -1);
 
                 foreach (Vector2 _offset in pathWidthExtension.Keys)
                 {
-                    try
-                    {
+                    if (xPosition - _pathWidth + (int)_offset.x > 0 && xPosition - _pathWidth + (int)_offset.x <= _mapChunkSize)
                         MapGenerator.mapDataContainer[_startChunkCoords + new Vector2(chunkOffset.x, chunkOffset.y * -1)].noiseMap[xPosition - _pathWidth + (int)_offset.x, _mapChunkSize] = 0;
-                    }
-                    catch { };
                 }
             }
 
 
             xPosition = (int)coordinates.x - ((int)chunkOffset.x * _mapChunkSize);
+            if (xPosition < 0)
+                xPosition = 0;
+            else if (yPosition > _mapChunkSize)
+                xPosition = _mapChunkSize;
+
             yPosition = (int)coordinates.y - ((int)chunkOffset.y * _mapChunkSize);
+            if (yPosition < 0)
+                yPosition = 0;
+            else if (yPosition > _mapChunkSize)
+                yPosition = _mapChunkSize;
 
             if (_heightValue == 0) {
                 if (MapGenerator.mapDataContainer[_startChunkCoords + new Vector2(chunkOffset.x, chunkOffset.y * -1)].noiseMap[xPosition, yPosition] > pathData[coordinates])

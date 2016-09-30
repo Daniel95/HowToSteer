@@ -35,8 +35,6 @@ public class LevelGenerator : MonoBehaviour
             mapTypeSeed = Random.Range(0, 10);
             while (GetLevelMode(new Vector2(0,0)) != EnumTypes.BiomeMode.Land)
             {
-                //print(Mathf.PerlinNoise(mapTypeSeed / 10, mapTypeSeed / 10) * levelModes.Length);
-                print(mapTypeSeed / 10);
                 mapTypeSeed = Random.Range(0, 10);
             }
         }
