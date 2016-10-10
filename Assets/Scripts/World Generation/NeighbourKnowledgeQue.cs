@@ -10,6 +10,7 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
         StopAllCoroutines();
     }
 
+    //saves all neighbours in mapdata
     public MapData GetAllNeighbours(MapData _mapData) {
         List<Vector2> allNeighbours = new List<Vector2>();
 
@@ -53,6 +54,7 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
         StartCoroutine(EnterAllNeighbourExistQue(_myCoordinates, _allNeighboursCoords, _callBack));
     }
 
+    //a que that waits for all neighbours to exists
     IEnumerator EnterAllNeighbourExistQue(Vector2 _myCoordinates, List<Vector2> _allNeighboursCoords, Action<MapData> _callBack)
     {
         bool allSurroundingChunksExist = false;
@@ -85,6 +87,7 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
         StartCoroutine(EnterAllNeighbourGeneratedLevelQue(_myCoordinates, _allNeighboursCoords, _callBack));
     }
 
+    //a que that waits for all neighbours to be generated
     IEnumerator EnterAllNeighbourGeneratedLevelQue(Vector2 _myCoordinates, List<Vector2> _allNeighboursCoords, Action<MapData> _callBack)
     {
         bool allSurroundingChunksExist = false;

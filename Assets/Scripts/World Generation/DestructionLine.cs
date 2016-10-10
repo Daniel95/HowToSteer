@@ -13,6 +13,13 @@ public class DestructionLine : MonoBehaviour {
     [SerializeField]
     private int tearWidth;
 
+    [SerializeField]
+    private float tearSmoothness = 0.5f;
+
+    [SerializeField]
+    private int skipMeshBuildingAmount = 1;
+    private int amountSkippedCounter = 0;
+
     private int mapChunkSize;
     private int halfMapChunkSize;
 
@@ -26,7 +33,7 @@ public class DestructionLine : MonoBehaviour {
     void Start()
     {
         meshSpawner = FindObjectOfType<MeshSpawner>();
-        mapChunkSize = FindObjectOfType<MapGenerator>().MapChunkSize;
+        mapChunkSize = FindObjectOfType<MapGenerator>().MapChunkSize - 1;
 
         GetComponent<WaitForLevelLoaded>().startPlaying += StartDestructionLineScript;
 
@@ -69,18 +76,22 @@ public class DestructionLine : MonoBehaviour {
             yield return new WaitForFixedUpdate();
         }
 
-        Paths.CreatePathChunksOverflow(oldChunkPosition, newChunkPosition, oldLocalPosition, newLocalPosition, 1, tearWidth, mapChunkSize);
+        Paths.CreatePathChunksOverflow(oldChunkPosition, newChunkPosition, oldLocalPosition, newLocalPosition, 1, tearWidth, tearSmoothness, true, mapChunkSize);
 
         int chunkCounter = 0;
 
-        while (chunkCounter < chunksPassedThrough.Count)
+        if (amountSkippedCounter >= skipMeshBuildingAmount)
         {
-            meshSpawner.MeshTerrainDictonary[chunksPassedThrough[chunkCounter]].UpdateNoiseMesh(MapGenerator.mapDataContainer[chunksPassedThrough[chunkCounter]].noiseMap);
-            chunkCounter++;
-            yield return new WaitForFixedUpdate();
+            amountSkippedCounter = 0;
+            while (chunkCounter < chunksPassedThrough.Count)
+            {
+                meshSpawner.MeshTerrainDictonary[chunksPassedThrough[chunkCounter]].UpdateNoiseMesh(MapGenerator.mapDataContainer[chunksPassedThrough[chunkCounter]].noiseMap);
+                chunkCounter++;
+                yield return new WaitForFixedUpdate();
+            }
+            chunksPassedThrough.Clear();
         }
-
-        chunksPassedThrough.Clear();
+        amountSkippedCounter++;
 
         oldChunkPosition = newChunkPosition;
         oldLocalPosition = newLocalPosition;

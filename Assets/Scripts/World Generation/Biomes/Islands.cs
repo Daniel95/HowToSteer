@@ -21,6 +21,9 @@ public class Islands : MonoBehaviour {
     [SerializeField]
     private int pathWidth = 3;
 
+    [SerializeField]
+    private float pathSmoothness = 0.5f;
+
     private List<IslandData> islandsDataContainer = new List<IslandData>();
 
     public MapData GenerateIslands(MapData _mapData, int _mapChunkSize, float _heigtCurveStartValue)
@@ -88,7 +91,7 @@ public class Islands : MonoBehaviour {
         destinationMapdata = NoiseEditor.FlattenNoiseArea(destinationMapdata, 0, true, EnumTypes.FigureMode.Circle, localDestination, 10, _mapChunkSize);
         MapGenerator.mapDataContainer[_destinationChunkCoordinates] = destinationMapdata;
 
-        Paths.CreatePathChunksOverflow(_ourChunkCoordinates, _destinationChunkCoordinates, _ourIslandLocalCoordinates, localDestination, 0, _pathWidth, _mapChunkSize);
+        Paths.CreatePathChunksOverflow(_ourChunkCoordinates, _destinationChunkCoordinates, _ourIslandLocalCoordinates, localDestination, 0, _pathWidth, pathSmoothness, false, _mapChunkSize);
     }
 
     private void MakeIslandConnection(Vector2 _ourIslandLocalCoordinates, int _pathWidth, MapData _mapData, int _mapChunkSize)
@@ -148,7 +151,7 @@ public class Islands : MonoBehaviour {
         //then add the paths to our chosen connections
         foreach (float dist in shortestDistanceIslandsData.Keys)
         {
-            Paths.CreatePathChunksOverflow(_mapData.coordinates, shortestDistanceIslandsData[dist].chunkCoordinates, _ourIslandLocalCoordinates, shortestDistanceIslandsData[dist].localCoordinates, 0, _pathWidth, _mapChunkSize);
+            Paths.CreatePathChunksOverflow(_mapData.coordinates, shortestDistanceIslandsData[dist].chunkCoordinates, _ourIslandLocalCoordinates, shortestDistanceIslandsData[dist].localCoordinates, 0, _pathWidth, pathSmoothness, false, _mapChunkSize);
         }
 
         if (activeConnectionsAmount < maxConnections)

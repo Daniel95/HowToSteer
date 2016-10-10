@@ -38,7 +38,7 @@ public class MapGenerator : MonoBehaviour {
     [SerializeField]
     public bool autoUpdate = true;
 
-    Queue<MapThreadInfo<MapData>> mapDataThreadInfoQueue = new Queue<MapThreadInfo<MapData>>();
+    //Queue<MapThreadInfo<MapData>> mapDataThreadInfoQueue = new Queue<MapThreadInfo<MapData>>();
 
     public static Dictionary<Vector2, MapData> mapDataContainer = new Dictionary<Vector2, MapData>();
 
@@ -52,8 +52,6 @@ public class MapGenerator : MonoBehaviour {
         levelGenerator = GetComponent<LevelGenerator>();
         neighbourKnowledgeQue = GetComponent<NeighbourKnowledgeQue>();
         seed = UnityEngine.Random.Range(-100000, 100000);
-
-        EndlessTerrain endlessTerrain = GetComponent<EndlessTerrain>();
     }
 
     public void GenerateMapInEditor() {
@@ -138,8 +136,6 @@ public class MapGenerator : MonoBehaviour {
         else if (drawMode == DrawMode.MeshMap) {
             Color[] colourMap = GetComponent<ColourMapConverter>().GenerateColorMap(_mapData.noiseMap, mapChunkSize);
 
-            Paths.CreatePathChunksOverflow(new Vector2(0, 0), new Vector2(0, 0), new Vector2(30, 10), new Vector2(60, 60), 0, 3, mapChunkSize);
-
             GetComponent<MeshSpawner>().SpawnMesh(_mapData, TextureGenerator.TextureFromColourMap(colourMap, mapChunkSize, mapChunkSize), heightCurve, levelGenerator.obstacleTypes, _mapData.coordinates, mapChunkSize, false);
         }
         //VoxelMap
@@ -149,7 +145,13 @@ public class MapGenerator : MonoBehaviour {
         }
     }
 
-    //threading
+    public void RequestGenerateMap(Vector2 _position)
+    {
+        CheckHowToBuild(RetrieveMapData(_position));
+    }
+
+    /*
+    //-!!!-threading causes a crash in webgl build-!!!- commented out...
     public void RequestGenerateMap(Vector2 _position)
     {
         ThreadStart threadStart = delegate {
@@ -176,7 +178,7 @@ public class MapGenerator : MonoBehaviour {
                 threadInfo.callBack(threadInfo.parameter);
             }
         }
-    }
+    }*/
 
     //returns a new or existing map
     private MapData RetrieveMapData(Vector2 _offset) {
