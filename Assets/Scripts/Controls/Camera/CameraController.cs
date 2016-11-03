@@ -3,17 +3,25 @@ using System.Collections;
 
 public class CameraController : MonoBehaviour {
 
-    public Transform target;
-    public float distance = 5.0f;
+    [SerializeField]
+    private Transform target;
+    [SerializeField]
+    private float distance = 5.0f;
 
-    public float bufferup = 1.5f;
-    public float bufferright = 0.75f;
+    [SerializeField]
+    private float bufferup = 1.5f;
+    [SerializeField]
+    private float bufferright = 0.75f;
 
-    public float xSpeed = 250.0f;
-    public float ySpeed = 120.0f;
+    [SerializeField]
+    private float xSpeed = 250.0f;
+    [SerializeField]
+    private float ySpeed = 120.0f;
 
-    public float yMinLimit = -20f;
-    public float yMaxLimit = 80f;
+    [SerializeField]
+    private float yMinLimit = -20f;
+    [SerializeField]
+    private float yMaxLimit = 80f;
 
     private float x = 0.0f;
     private float y = 0.0f;
@@ -41,8 +49,8 @@ public class CameraController : MonoBehaviour {
             {
                 distance = 0;
             }
-            x += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
-            y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+            x += Input.GetAxis("Mouse X") * xSpeed;
+            y -= Input.GetAxis("Mouse Y") * ySpeed;
 
             y = ClampAngle(y, yMinLimit, yMaxLimit);
 

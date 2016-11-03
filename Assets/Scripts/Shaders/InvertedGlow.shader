@@ -1,4 +1,4 @@
-﻿Shader "Custom/Glow" {
+﻿Shader "Custom/InvertedGlow" {
 	Properties{
 		_ColorTint("Color Tint", Color) = (1, 1, 1, 1)
 		_MainTex("Base (RGB)", 2D) = "white" {}
@@ -33,8 +33,8 @@
 			IN.color = _ColorTint;
 			o.Albedo = tex2D(_MainTex, IN.uv_MainTex).rgb * IN.color;
 
-			//the bigger the dot product the more color is added
-			half rim = dot(normalize(IN.viewDir), o.Normal);
+			//the smaller the dot product the more color is added
+			half rim = 1.0 - dot(normalize(IN.viewDir), o.Normal);
 			o.Emission = _RimColor.rgb * pow(rim, _RimPower);
 		}
 		ENDCG
