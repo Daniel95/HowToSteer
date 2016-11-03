@@ -1,5 +1,6 @@
 ﻿Shader "Custom/HeightColors" {
 	Properties{
+		_Offset("HeightOffset", float) = 0
 		_Glossiness("Smoothness", Range(0,1)) = 0.5
 		_Metallic("Metallic", Range(0,1)) = 0.0
 	}
@@ -15,7 +16,6 @@
 
 		struct Input {
 			float3 worldPos;
-			float3 customColor;
 		};
 
 		float _Offset;
@@ -29,7 +29,6 @@
 
 		void vert(inout appdata_full v, out Input o) {
 			UNITY_INITIALIZE_OUTPUT(Input, o);
-			o.customColor = abs(v.normal.y);
 		}
 
 		void surf(Input IN, inout SurfaceOutputStandard o) {

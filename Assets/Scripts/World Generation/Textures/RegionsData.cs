@@ -6,17 +6,11 @@ public class RegionsData : MonoBehaviour {
     [SerializeField]
     private RegionTypes[] regionTypes;
 
-    [SerializeField]
-    private float offset = -0.9f;
-
-    public static float regionHeightsOffset;
-
     public static float[] regionHeights;
 
     public static Color[] regionColors;
 
     void Awake() {
-        regionHeightsOffset = offset;
         List<float> heights = new List<float>();
         List<Color> colors = new List<Color>();
 
@@ -32,7 +26,6 @@ public class RegionsData : MonoBehaviour {
     [System.Serializable]
     public struct RegionTypes
     {
-        public string name;
         public float height;
         public Color color;
     }

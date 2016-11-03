@@ -7,7 +7,6 @@ public class RegionsDataSender : MonoBehaviour {
         Renderer renderer = GetComponent<Renderer>();
         Material material = renderer.sharedMaterial;
 
-        material.SetFloat("_Offset", RegionsData.regionHeightsOffset);
         material.SetFloatArray("_Heights", RegionsData.regionHeights);
         material.SetColorArray("_Colors", RegionsData.regionColors);
         material.SetInt("_ArrayLength", RegionsData.regionHeights.Length);
