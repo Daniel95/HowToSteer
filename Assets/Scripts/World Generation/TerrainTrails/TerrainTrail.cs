@@ -12,7 +12,7 @@ public class TerrainTrail : MonoBehaviour {
     public int lineHeight = 1;
 
     [SerializeField]
-    private int lineWidth = 2;
+    public  int lineWidth = 2;
 
     [SerializeField]
     private float lineSmoothness = 0.5f;
@@ -29,6 +29,8 @@ public class TerrainTrail : MonoBehaviour {
 
     public Func<Vector3> GetPostion;
 
+    private bool isTrailing = false;
+
     private Vector3 trailPosition;
 
     private MeshSpawner meshSpawner;
@@ -41,17 +43,23 @@ public class TerrainTrail : MonoBehaviour {
         mapChunkSize = FindObjectOfType<MapGenerator>().MapChunkSize - 1;
 
         halfMapChunkSize = mapChunkSize / 2;
-
-        oldChunkPosition = new Vector2(0,0);
-        oldLocalPosition = new Vector2(halfMapChunkSize - 10, halfMapChunkSize);
     }
 
     public void StartTerrainTrails()
     {
+        isTrailing = true;
+
+        if (GetPostion != null)
+            trailPosition = GetPostion();
+
+        oldChunkPosition = new Vector2(Mathf.Floor((trailPosition.x + halfMapChunkSize) / mapChunkSize), Mathf.Floor((trailPosition.z + halfMapChunkSize) / mapChunkSize));
+        oldLocalPosition = new Vector2(trailPosition.x - (oldChunkPosition.x * mapChunkSize - halfMapChunkSize), Mathf.Abs(trailPosition.z - (oldChunkPosition.y * mapChunkSize + halfMapChunkSize)));
+
         StartCoroutine(TerrainTrails());
     }
 
     public void StopTerrainTrails() {
+        isTrailing = false;
         StopAllCoroutines();
     }
 
@@ -114,5 +122,11 @@ public class TerrainTrail : MonoBehaviour {
         {
             chunksPassedThrough.Add(currentChunkLocation);
         }
+    }
+
+    public bool IsTrailing
+    {
+        get { return isTrailing; }
+        set { isTrailing = value; }
     }
 }

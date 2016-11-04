@@ -31,6 +31,7 @@
 			UNITY_INITIALIZE_OUTPUT(Input, o);
 		}
 
+
 		void surf(Input IN, inout SurfaceOutputStandard o) {
 
 			float yWPos = IN.worldPos.y - _Offset;

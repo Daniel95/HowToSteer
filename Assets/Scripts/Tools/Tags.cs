@@ -5,4 +5,6 @@
     DontDestroyOnLoad,
     Player,
     Ground,
+    WidthSlider,
+    HeightSlider,
 }
