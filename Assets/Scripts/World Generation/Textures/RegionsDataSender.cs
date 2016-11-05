@@ -9,7 +9,6 @@ public class RegionsDataSender : MonoBehaviour {
 
         material.SetFloatArray("_Heights", RegionsData.regionHeights);
         material.SetColorArray("_Colors", RegionsData.regionColors);
-        material.SetInt("_ArrayLength", RegionsData.regionHeights.Length);
         material.SetColor("_ColorTest", Color.blue);
     }
 }
