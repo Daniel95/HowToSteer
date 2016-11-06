@@ -59,7 +59,8 @@ public class EnvironmentGenerator : MonoBehaviour {
         {
             for (int i = 0; i < _mapData.directNeighbourCoords.Count; i++)
             {
-                if (MapGenerator.mapDataContainer[_mapData.directNeighbourCoords[i]].levelMode == EnumTypes.BiomeMode.Water)
+                //if (MapGenerator.mapDataContainer[_mapData.directNeighbourCoords[i]].levelMode == EnumTypes.BiomeMode.Water)
+                if(GetBiomeMode(_mapData.directNeighbourCoords[i]) == EnumTypes.BiomeMode.Water)
                 {
                     _mapData = SmoothToDirectNeighbours
                     (

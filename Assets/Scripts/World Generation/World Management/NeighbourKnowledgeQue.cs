@@ -5,8 +5,6 @@ using System.Collections.Generic;
 
 public class NeighbourKnowledgeQue : MonoBehaviour {
 
-    private Dictionary<Vector2, MapdataInQueue> ExistingMapdataInQueueContainer = new Dictionary<Vector2, MapdataInQueue>();
-
     private Dictionary<Vector2, MapdataInQueue> GeneratedEnvironmentMapdataInQueueContainer = new Dictionary<Vector2, MapdataInQueue>();
     private Dictionary<Vector2, MapdataInQueue> GeneratedLevelMapdataInQueueContainer = new Dictionary<Vector2, MapdataInQueue>();
 
@@ -54,37 +52,10 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
         return _mapData;
     }
 
-    public void StartNeighboursExistQueue(Vector2 _myCoordinates, List<Vector2> _allNeighboursCoords, Action<MapData> _callBack)
-    {
-        MapData mapdataValue;
-        MapdataInQueue mapdataInQueueValue;
-
-        int existingNeighboursCount = 0;
-
-        for (int i = _allNeighboursCoords.Count - 1; i >= 0; i--)
-        {
-            //check if my neigbhour exists, if so then increment mine and theirs existingNeighboursCount
-            if (MapGenerator.mapDataContainer.TryGetValue(_allNeighboursCoords[i], out mapdataValue))
-            {
-                if (ExistingMapdataInQueueContainer.TryGetValue(_allNeighboursCoords[i], out mapdataInQueueValue))
-                {
-                    //if the incrementActiveNeighboursCount returns true (which means all neighbours are active), remove it from the list.
-                    if (ExistingMapdataInQueueContainer[_allNeighboursCoords[i]].IncrementActiveNeighboursCount())
-                    {
-                        ExistingMapdataInQueueContainer.Remove(_allNeighboursCoords[i]);
-                    }
-                }
-
-                existingNeighboursCount++;
-            }
-        }
-
-        ExistingMapdataInQueueContainer.Add(_myCoordinates, new MapdataInQueue(_myCoordinates, existingNeighboursCount, _callBack));
-    }
-
-    //a que that waits for all neighbours to be generated
+    //queue until each of our neighbours is done generating its enviroment
     public void StartNeighboursEnviromentQueue(Vector2 _myCoordinates, List<Vector2> _allNeighboursCoords, Action<MapData> _callBack)
     {
+        MapData mapdataValue;
         MapdataInQueue mapdataInQueueValue;
 
         int generatedNeighboursCount = 0;
@@ -92,7 +63,7 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
         for (int i = _allNeighboursCoords.Count - 1; i >= 0; i--)
         {
             //check if my neighbour is generated, if so then increment mine and theirs generatedNeighboursCount
-            if (MapGenerator.mapDataContainer[_allNeighboursCoords[i]].generatedEnviromentComplete)
+            if (MapGenerator.mapDataContainer.TryGetValue(_allNeighboursCoords[i], out mapdataValue) && MapGenerator.mapDataContainer[_allNeighboursCoords[i]].generatedEnviromentComplete)
             {
                 if (GeneratedEnvironmentMapdataInQueueContainer.TryGetValue(_allNeighboursCoords[i], out mapdataInQueueValue))
                 {
@@ -110,7 +81,7 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
         GeneratedEnvironmentMapdataInQueueContainer.Add(_myCoordinates, new MapdataInQueue(_myCoordinates, generatedNeighboursCount, _callBack));
     }
 
-    //a que that waits for all neighbours to be generated
+    //queue until each of our neighbours is done generating the level, so that our mesh is up to date with paths or other things from our neighbour
     public void StartNeighboursLevelQueue(Vector2 _myCoordinates, List<Vector2> _allNeighboursCoords, Action<MapData> _callBack)
     {
         MapdataInQueue mapdataInQueueValue;

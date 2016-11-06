@@ -100,28 +100,28 @@ public class MapGenerator : MonoBehaviour
         //generate the mapdata how it existed
         if (mapDataContainer.ContainsKey(_mapData.coordinates))
         {
-            GenerateMap(_mapData);
+            CreateMap(_mapData);
         }
         else // generate a new mapdata
         {
-            GenerateMapdata(_mapData);
+            GenerateBiome(_mapData);
         }
     }
 
     //first phase of generating
-    //generates a new mapdata, and adds it to the mapdata container. 
+    //generates a new mapdata, find its biome and add it to the mapdata container. 
     //after that we enter the StartNeighboursExistQueue 
-    private void GenerateMapdata(MapData _mapData)
+    private void GenerateBiome(MapData _mapData)
     {
         _mapData.levelMode = environmentGenerator.GetBiomeMode(_mapData.coordinates);
         _mapData = neighbourKnowledgeQue.GetAllNeighbours(_mapData);
         mapDataContainer.Add(_mapData.coordinates, _mapData);
 
-        neighbourKnowledgeQue.StartNeighboursExistQueue(_mapData.coordinates, _mapData.allNeighboursCoords, GenerateEnvironment);
+        GenerateEnviroment(_mapData);
     }
 
-    //second phase of generating, generate the enviroment
-    private void GenerateEnvironment(MapData _mapData)
+    //second phase of generating, generate the environment
+    private void GenerateEnviroment(MapData _mapData)
     {
         _mapData = environmentGenerator.GenerateEnvironment(_mapData, mapChunkSize);
         _mapData.generatedEnviromentComplete = true;
@@ -139,15 +139,14 @@ public class MapGenerator : MonoBehaviour
 
         mapDataContainer[_mapData.coordinates] = _mapData;
 
-        neighbourKnowledgeQue.StartNeighboursLevelQueue(_mapData.coordinates, _mapData.allNeighboursCoords, GenerateMap);
+        neighbourKnowledgeQue.StartNeighboursLevelQueue(_mapData.coordinates, _mapData.allNeighboursCoords, CreateMap);
     }
 
     //generates the map how it is given, without editing it.
-    private void GenerateMap(MapData _mapData)
+    private void CreateMap(MapData _mapData)
     {
         meshSpawner.SpawnMesh(_mapData, heightCurve, levelGenerator.obstacleTypes, _mapData.coordinates, mapChunkSize);
     }
-
 
     public void RequestGenerateMap(Vector2 _position)
     {
