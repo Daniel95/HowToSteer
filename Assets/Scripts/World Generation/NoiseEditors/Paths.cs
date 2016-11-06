@@ -45,8 +45,7 @@ public static class Paths
             {
                 AddWHeightExtensionManually(mapChunkSize, yPosition, pathExtension, chunkOffset, _startChunkCoords);
                 chunkOffset.x++;
-                //AddWHeightExtensionManually(0, yPosition, pathExtension, chunkOffset, _startChunkCoords);
-                //AddWHeightExtensionManually(mapChunkSize, yPosition, pathExtension, chunkOffset, _startChunkCoords);
+                AddWHeightExtensionManually(0, yPosition, pathExtension, chunkOffset, _startChunkCoords);
             }
             //next chunk left
             else if ((int)coordinates.x - ((int)chunkOffset.x * mapChunkSize) < 0)
@@ -72,7 +71,7 @@ public static class Paths
 
             Vector2 currentChunk = _startChunkCoords + new Vector2(chunkOffset.x, chunkOffset.y * -1);
 
-            //from each pathdat point, also apply the width/height extension
+            //from each pathdata point, also apply the width/height extension
             foreach (Vector2 extensionOffset in pathExtension.Keys)
             {
                 xPosition = (int)coordinates.x + (int)extensionOffset.x - ((int)chunkOffset.x * mapChunkSize);
@@ -204,9 +203,10 @@ public static class Paths
 
         foreach (Vector2 _offset in _pathExtension.Keys)
         {
-            //check if this coordinate is within our chunk bounds
-            if (_yPos - _pathExtension.Count - 1 + (int)_offset.y >= 0 && _yPos - pathWidth + (int)_offset.y <= mapChunkSize)
+            if (_yPos - pathWidth + (int)_offset.y >= 0 && _yPos + pathWidth + (int)_offset.y <= mapChunkSize)
+            {
                 MapGenerator.mapDataContainer[currentChunkCoord].noiseMap[_xPos, _yPos - pathWidth + (int)_offset.y] = heightValue;
+            }
         }
     }
 }

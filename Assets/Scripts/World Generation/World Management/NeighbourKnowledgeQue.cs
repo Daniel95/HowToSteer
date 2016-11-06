@@ -7,7 +7,8 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
 
     private Dictionary<Vector2, MapdataInQueue> ExistingMapdataInQueueContainer = new Dictionary<Vector2, MapdataInQueue>();
 
-    private Dictionary<Vector2, MapdataInQueue> GeneratedMapdataInQueueContainer = new Dictionary<Vector2, MapdataInQueue>();
+    private Dictionary<Vector2, MapdataInQueue> GeneratedEnvironmentMapdataInQueueContainer = new Dictionary<Vector2, MapdataInQueue>();
+    private Dictionary<Vector2, MapdataInQueue> GeneratedLevelMapdataInQueueContainer = new Dictionary<Vector2, MapdataInQueue>();
 
     void OnDisable()
     {
@@ -82,7 +83,35 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
     }
 
     //a que that waits for all neighbours to be generated
-    public void StartNeighboursGeneratedQueue(Vector2 _myCoordinates, List<Vector2> _allNeighboursCoords, Action<MapData> _callBack)
+    public void StartNeighboursEnviromentQueue(Vector2 _myCoordinates, List<Vector2> _allNeighboursCoords, Action<MapData> _callBack)
+    {
+        MapdataInQueue mapdataInQueueValue;
+
+        int generatedNeighboursCount = 0;
+
+        for (int i = _allNeighboursCoords.Count - 1; i >= 0; i--)
+        {
+            //check if my neighbour is generated, if so then increment mine and theirs generatedNeighboursCount
+            if (MapGenerator.mapDataContainer[_allNeighboursCoords[i]].generatedEnviromentComplete)
+            {
+                if (GeneratedEnvironmentMapdataInQueueContainer.TryGetValue(_allNeighboursCoords[i], out mapdataInQueueValue))
+                {
+                    //if the incrementActiveNeighboursCount returns true (which means all neighbours are active), remove it from the list.
+                    if (GeneratedEnvironmentMapdataInQueueContainer[_allNeighboursCoords[i]].IncrementActiveNeighboursCount())
+                    {
+                        GeneratedEnvironmentMapdataInQueueContainer.Remove(_allNeighboursCoords[i]);
+                    }
+                }
+
+                generatedNeighboursCount++;
+            }
+        }
+
+        GeneratedEnvironmentMapdataInQueueContainer.Add(_myCoordinates, new MapdataInQueue(_myCoordinates, generatedNeighboursCount, _callBack));
+    }
+
+    //a que that waits for all neighbours to be generated
+    public void StartNeighboursLevelQueue(Vector2 _myCoordinates, List<Vector2> _allNeighboursCoords, Action<MapData> _callBack)
     {
         MapdataInQueue mapdataInQueueValue;
 
@@ -93,12 +122,12 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
             //check if my neighbour is generated, if so then increment mine and theirs generatedNeighboursCount
             if (MapGenerator.mapDataContainer[_allNeighboursCoords[i]].generatedLevelComplete)
             {
-                if (GeneratedMapdataInQueueContainer.TryGetValue(_allNeighboursCoords[i], out mapdataInQueueValue))
+                if (GeneratedLevelMapdataInQueueContainer.TryGetValue(_allNeighboursCoords[i], out mapdataInQueueValue))
                 {
                     //if the incrementActiveNeighboursCount returns true (which means all neighbours are active), remove it from the list.
-                    if (GeneratedMapdataInQueueContainer[_allNeighboursCoords[i]].IncrementActiveNeighboursCount())
+                    if (GeneratedLevelMapdataInQueueContainer[_allNeighboursCoords[i]].IncrementActiveNeighboursCount())
                     {
-                        GeneratedMapdataInQueueContainer.Remove(_allNeighboursCoords[i]);
+                        GeneratedLevelMapdataInQueueContainer.Remove(_allNeighboursCoords[i]);
                     }
                 }
 
@@ -106,7 +135,7 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
             }
         }
 
-        GeneratedMapdataInQueueContainer.Add(_myCoordinates, new MapdataInQueue(_myCoordinates, generatedNeighboursCount, _callBack));
+        GeneratedLevelMapdataInQueueContainer.Add(_myCoordinates, new MapdataInQueue(_myCoordinates, generatedNeighboursCount, _callBack));
     }
 
     public class MapdataInQueue
