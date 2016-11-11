@@ -34,7 +34,7 @@ public class LevelGenerator : MonoBehaviour
     {
         if (_mapData.levelMode == EnumTypes.BiomeMode.Land)
         {
-            if (_mapData.coordinates != new Vector2(0, 0))
+            if (_mapData.coordinate != new Vector2(0, 0))
                 _mapData = GenerateSpecials(_mapData, _mapChunkSize, minSpecialSpawnHeight);
         }
         else if (_mapData.levelMode == EnumTypes.BiomeMode.Water)
@@ -67,6 +67,10 @@ public class LevelGenerator : MonoBehaviour
         _mapData.obstacleData = obstacleData;
         obstacleData = null;
         return _mapData;
+    }
+
+    public void RemoveIslandData(Vector2 _coord) {
+        islands.RemoveIslandData(_coord);
     }
 }
 

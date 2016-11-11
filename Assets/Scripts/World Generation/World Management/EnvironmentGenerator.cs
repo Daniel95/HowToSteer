@@ -41,7 +41,7 @@ public class EnvironmentGenerator : MonoBehaviour {
     public MapData GenerateEnvironment(MapData _mapData, int _mapChunkSize)
     {
         //tweak the first chunk to have a circle in the middle so the player has room to start
-        if (_mapData.coordinates == Vector2.zero)
+        if (_mapData.coordinate == Vector2.zero)
         {
             _mapData = NoiseEditor.FlattenCircleRandomized(_mapData, 0, true, EnumTypes.FigureMode.Circle, new Vector2(_mapChunkSize / 2, _mapChunkSize / 2), _mapChunkSize / 2, _mapChunkSize, 10);
         }
@@ -59,13 +59,12 @@ public class EnvironmentGenerator : MonoBehaviour {
         {
             for (int i = 0; i < _mapData.directNeighbourCoords.Count; i++)
             {
-                //if (MapGenerator.mapDataContainer[_mapData.directNeighbourCoords[i]].levelMode == EnumTypes.BiomeMode.Water)
                 if(GetBiomeMode(_mapData.directNeighbourCoords[i]) == EnumTypes.BiomeMode.Water)
                 {
                     _mapData = SmoothToDirectNeighbours
                     (
                         _mapData,
-                        _mapData.directNeighbourCoords[i] - _mapData.coordinates,
+                        _mapData.directNeighbourCoords[i] - _mapData.coordinate,
                         _sizeDivider,
                         _mapChunkSize
                     );

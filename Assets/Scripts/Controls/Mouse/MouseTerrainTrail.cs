@@ -13,8 +13,8 @@ public class MouseTerrainTrail : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         terrainTrail = GetComponent<TerrainTrail>();
-        MapGenerator mapGenerator = FindObjectOfType<MapGenerator>();
-        mapGenerator.doneLoadingLevel += StartMouseTerrainTrail;
+        EndlessTerrain endlessTerrain = FindObjectOfType<EndlessTerrain>();
+        endlessTerrain.doneLoadingLevel += StartMouseTerrainTrail;
 
         SendSliderValue sendHeightSliderValue = GameObject.FindGameObjectWithTag(Tags.HeightSlider.ToString()).GetComponent<SendSliderValue>();
         sendHeightSliderValue.OnValueChange += ChangeTrailHeight;
@@ -23,8 +23,6 @@ public class MouseTerrainTrail : MonoBehaviour {
         SendSliderValue sendWidthSliderValue = GameObject.FindGameObjectWithTag(Tags.WidthSlider.ToString()).GetComponent<SendSliderValue>();
         sendWidthSliderValue.OnValueChange += ChangeTrailWidth;
         terrainTrail.lineWidth = (int)sendWidthSliderValue.GetSliderValue();
-
-        FindObjectOfType<MapGenerator>().doneLoadingLevel += StartMouseTerrainTrail;
     }
 
     void StartMouseTerrainTrail() {
@@ -33,8 +31,8 @@ public class MouseTerrainTrail : MonoBehaviour {
     }
 
     void OnDisable() {
-        if(FindObjectOfType<MapGenerator>() != null)
-            FindObjectOfType<MapGenerator>().doneLoadingLevel += StartMouseTerrainTrail;
+        if(FindObjectOfType<EndlessTerrain>() != null)
+            FindObjectOfType<EndlessTerrain>().doneLoadingLevel += StartMouseTerrainTrail;
 
         if (FindObjectOfType<SendSliderValue>() != null)
             FindObjectOfType<SendSliderValue>().OnValueChange -= ChangeTrailHeight;

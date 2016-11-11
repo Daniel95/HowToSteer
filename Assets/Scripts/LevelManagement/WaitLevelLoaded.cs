@@ -10,13 +10,13 @@ public class WaitLevelLoaded : MonoBehaviour {
             DoneLoading();
         }
         else {
-            FindObjectOfType<MapGenerator>().doneLoadingLevel += DoneLoading;
+            FindObjectOfType<EndlessTerrain>().doneLoadingLevel += DoneLoading;
         }
     }
 
     void OnDisable() {
-        if(FindObjectOfType<MapGenerator>() != null)
-            FindObjectOfType<MapGenerator>().doneLoadingLevel -= DoneLoading;
+        if(FindObjectOfType<EndlessTerrain>() != null)
+            FindObjectOfType<EndlessTerrain>().doneLoadingLevel -= DoneLoading;
     }
 
     //wait until all levels have been loaded, then start setting the player down

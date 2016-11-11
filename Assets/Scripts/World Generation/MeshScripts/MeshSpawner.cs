@@ -23,13 +23,7 @@ public class MeshSpawner : MonoBehaviour
     void OnEnable()
     {
         endlessTerrain = GetComponent<EndlessTerrain>();
-        endlessTerrain.removeChunkDelegate += RemoveMeshTerrainData;
         detailLevels[detailLevels.Length - 1].visibleDstThreshold = endlessTerrain.MaxViewDistance;
-    }
-
-    void OnDisable() {
-        if(endlessTerrain.removeChunkDelegate != null)
-            endlessTerrain.removeChunkDelegate -= RemoveMeshTerrainData;
     }
 
     public void SpawnMesh(MapData _mapData, AnimationCurve _heightCurve, ObstacleType[] _obstacleTypes, Vector2 _coord, int _mapChunkSize, bool _generateFromEditor = false)
@@ -78,26 +72,14 @@ public class MeshSpawner : MonoBehaviour
 
     private void UpdateAllMeshes(Vector2 _viewerPosition)
     {
-        List<Vector2> dictKeysToRemove = new List<Vector2>();
-
         foreach (Vector2 key in meshTerrainDictionary.Keys) {
             meshTerrainDictionary[key].UpdateMeshTerrain(_viewerPosition);
-
-            if (meshTerrainDictionary[key].viewerDstFromNearestEdge > detailLevels[detailLevels.Length - 1].visibleDstThreshold)
-            {
-                dictKeysToRemove.Add(key);
-            }
-        }
-
-        for (int i = 0; i < dictKeysToRemove.Count; i++) {
-            meshTerrainDictionary.Remove(dictKeysToRemove[i]);
         }
     }
 
-    private void RemoveMeshTerrainData(Vector2 _coordinate) {
+    public void RemoveMeshTerrain(Vector2 _coordinate) {
         meshTerrainDictionary.Remove(_coordinate);
     }
-
 
     public class MeshTerrain
     {

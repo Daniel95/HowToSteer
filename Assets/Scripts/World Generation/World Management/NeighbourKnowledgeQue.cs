@@ -23,11 +23,11 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
         int totalCounter = 0;
 
         //add all neighbours to neighbours to check, and also save who are direct neighbours and who are cornerneighbours
-        for (int y = (int)_mapData.coordinates.y - 1; y <= _mapData.coordinates.y + 1; y++)
+        for (int y = (int)_mapData.coordinate.y - 1; y <= _mapData.coordinate.y + 1; y++)
         {
-            for (int x = (int)_mapData.coordinates.x - 1; x <= _mapData.coordinates.x + 1; x++)
+            for (int x = (int)_mapData.coordinate.x - 1; x <= _mapData.coordinate.x + 1; x++)
             {
-                if (_mapData.coordinates != new Vector2(x, y))
+                if (_mapData.coordinate != new Vector2(x, y))
                 {
                     if (totalCounter % 2 == 0)
                     {
@@ -78,7 +78,10 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
             }
         }
 
-        GeneratedEnvironmentMapdataInQueueContainer.Add(_myCoordinates, new MapdataInQueue(_myCoordinates, generatedNeighboursCount, _callBack));
+        if (generatedNeighboursCount >= 8)
+            _callBack(MapGenerator.mapDataContainer[_myCoordinates]);
+        else
+            GeneratedEnvironmentMapdataInQueueContainer.Add(_myCoordinates, new MapdataInQueue(_myCoordinates, generatedNeighboursCount, _callBack));
     }
 
     //queue until each of our neighbours is done generating the level, so that our mesh is up to date with paths or other things from our neighbour
@@ -106,18 +109,47 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
             }
         }
 
-        GeneratedLevelMapdataInQueueContainer.Add(_myCoordinates, new MapdataInQueue(_myCoordinates, generatedNeighboursCount, _callBack));
+        if (generatedNeighboursCount >= 8)
+            _callBack(MapGenerator.mapDataContainer[_myCoordinates]);
+        else
+            GeneratedLevelMapdataInQueueContainer.Add(_myCoordinates, new MapdataInQueue(_myCoordinates, generatedNeighboursCount, _callBack));
+    }
+
+    public void RemoveNeighbourKnowledge(Vector2 _coord) {
+
+        //FindObjectOfType<DebugGrid>().SpawnEditableMessage("/////////", _coord, "GeneratePhase");
+        //FindObjectOfType<DebugGrid>().SpawnEditableMessage("", _coord, "ActiveCount", -10);
+        DecrementNeighboursActiveCount(_coord, GeneratedEnvironmentMapdataInQueueContainer);
+        GeneratedEnvironmentMapdataInQueueContainer.Remove(_coord);
+        DecrementNeighboursActiveCount(_coord, GeneratedLevelMapdataInQueueContainer);
+        GeneratedLevelMapdataInQueueContainer.Remove(_coord);
+    }
+
+    //decrements the active neighbours count for chunks around this chunk
+    public void DecrementNeighboursActiveCount(Vector2 _coord, Dictionary<Vector2, MapdataInQueue> _queue)
+    {
+        MapdataInQueue mapdataInQueValue;
+        List<Vector2> allNeighboursCoords = MapGenerator.mapDataContainer[_coord].allNeighboursCoords;
+
+        for (int i = 0; i < allNeighboursCoords.Count; i++)
+        {
+            //check if my neighbour is generated, if so then increment mine and theirs generatedNeighboursCount
+            if (_queue.TryGetValue(allNeighboursCoords[i], out mapdataInQueValue))
+            {
+                _queue[allNeighboursCoords[i]].DecrementActiveNeighoursCount();
+            }
+        }
     }
 
     public class MapdataInQueue
     {
-        public Vector2 coordinates;
+        public Vector2 coordinate;
         public Action<MapData> callback;
         public int activeNeighboursCount;
 
-        public MapdataInQueue(Vector2 _coordinates, int _activeNeighboursCount, Action<MapData> _callback)
+        public MapdataInQueue(Vector2 _coordinate, int _activeNeighboursCount, Action<MapData> _callback)
         {
-            coordinates = _coordinates;
+            coordinate = _coordinate;
             activeNeighboursCount = _activeNeighboursCount;
             callback = _callback;
         }
@@ -125,16 +157,22 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
         //returns true when all neighbours are active.
         public bool IncrementActiveNeighboursCount() {
             activeNeighboursCount++;
-
+            //FindObjectOfType<DebugGrid>().SpawnEditableMessage(activeNeighboursCount.ToString(), coordinate, "ActiveCount", -10);
             return CheckAllNeighboursActive();
         }
 
+        public void DecrementActiveNeighoursCount()
+        {
+            activeNeighboursCount--;
+            //FindObjectOfType<DebugGrid>().SpawnEditableMessage(activeNeighboursCount.ToString(), coordinate, "ActiveCount", -10);
+        }
+
         private bool CheckAllNeighboursActive() {
-            //check if all our (8) neighbours are generated, if so then activate the callback and leave the queue
+            //check if all our (8) neighbours are active, if so then activate the callback and leave the queue
             if (activeNeighboursCount >= 8)
             {
                 //activate our callback, so that the map/chunk may be further generated
-                callback(MapGenerator.mapDataContainer[coordinates]);
+                callback(MapGenerator.mapDataContainer[coordinate]);
 
                 return true;
             }

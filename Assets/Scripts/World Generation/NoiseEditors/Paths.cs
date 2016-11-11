@@ -41,28 +41,28 @@ public static class Paths
         {
             //here we check if our position surpassed the positions possible in a chunk.
             //next chunk right
-            if ((int)coordinates.x - ((int)chunkOffset.x * mapChunkSize) > mapChunkSize)
+            if (coordinates.x - (chunkOffset.x * mapChunkSize) > mapChunkSize)
             {
                 AddWHeightExtensionManually(mapChunkSize, yPosition, pathExtension, chunkOffset, _startChunkCoords);
                 chunkOffset.x++;
                 AddWHeightExtensionManually(0, yPosition, pathExtension, chunkOffset, _startChunkCoords);
             }
             //next chunk left
-            else if ((int)coordinates.x - ((int)chunkOffset.x * mapChunkSize) < 0)
+            else if (coordinates.x - (chunkOffset.x * mapChunkSize) < 0)
             {
                 AddWHeightExtensionManually(0, yPosition, pathExtension, chunkOffset, _startChunkCoords);
                 chunkOffset.x--;
                 AddWHeightExtensionManually(mapChunkSize, yPosition, pathExtension, chunkOffset, _startChunkCoords);
             }
             //next chunk down
-            if ((int)coordinates.y - ((int)chunkOffset.y * mapChunkSize) > mapChunkSize)
+            if (coordinates.y - (chunkOffset.y * mapChunkSize) > mapChunkSize)
             {
                 AddWidthExtensionManually(xPosition, mapChunkSize, pathExtension, chunkOffset, _startChunkCoords);
                 chunkOffset.y++;
                 AddWidthExtensionManually(xPosition, 0, pathExtension, chunkOffset, _startChunkCoords);
             }
             //next chunk up
-            else if ((int)coordinates.y - ((int)chunkOffset.y * mapChunkSize) < 0)
+            else if (coordinates.y - (chunkOffset.y * mapChunkSize) < 0)
             {
                 AddWidthExtensionManually(xPosition, 0, pathExtension, chunkOffset, _startChunkCoords);
                 chunkOffset.y--;
@@ -132,7 +132,6 @@ public static class Paths
         return pathData;
     }
 
-
     //generates the extension of the path to make it higher.
     private static Dictionary<Vector2, float> GenerateHeightExtension(float _smoothness)
     {
@@ -187,26 +186,23 @@ public static class Paths
     //used for chunk border that might be skipped by a path due to rounding
     private static void AddWidthExtensionManually(int _xPos, int _yPos, Dictionary<Vector2, float> _pathExtension, Vector2 _chunkOffset, Vector2 _startChunkCoords)
     {
-        Vector3 currentChunkCoord = _startChunkCoords + new Vector2(_chunkOffset.x, _chunkOffset.y * -1);
+        Vector2 originChunkCoord = _startChunkCoords + new Vector2(_chunkOffset.x, _chunkOffset.y * -1);
 
         foreach (Vector2 _offset in _pathExtension.Keys)
         {
-            //check if this coordinate is within our chunk bounds
             if (_xPos - _pathExtension.Count - 1 + (int)_offset.x >= 0 && _xPos - pathWidth + (int)_offset.x <= mapChunkSize)
-                MapGenerator.mapDataContainer[currentChunkCoord].noiseMap[_xPos - pathWidth + (int)_offset.x, _yPos] = heightValue;
+                MapGenerator.mapDataContainer[originChunkCoord].noiseMap[_xPos - pathWidth + (int)_offset.x, _yPos] = heightValue;
         }
     }
 
     private static void AddWHeightExtensionManually(int _xPos, int _yPos, Dictionary<Vector2, float> _pathExtension, Vector2 _chunkOffset, Vector2 _startChunkCoords)
     {
-        Vector3 currentChunkCoord = _startChunkCoords + new Vector2(_chunkOffset.x, _chunkOffset.y * -1);
+        Vector2 originChunkCoord = _startChunkCoords + new Vector2(_chunkOffset.x, _chunkOffset.y * -1);
 
         foreach (Vector2 _offset in _pathExtension.Keys)
         {
             if (_yPos - pathWidth + (int)_offset.y >= 0 && _yPos + pathWidth + (int)_offset.y <= mapChunkSize)
-            {
-                MapGenerator.mapDataContainer[currentChunkCoord].noiseMap[_xPos, _yPos - pathWidth + (int)_offset.y] = heightValue;
-            }
+                MapGenerator.mapDataContainer[originChunkCoord].noiseMap[_xPos, _yPos - pathWidth + (int)_offset.y] = heightValue;
         }
     }
 }

@@ -1,15 +1,18 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 
 public class EndlessTerrain : MonoBehaviour
 {
-
     const float viewerMoveThresholdForChunkUpdate = 25;
     const float sqrViewerMoveThresholdForChunkUpdate = viewerMoveThresholdForChunkUpdate * viewerMoveThresholdForChunkUpdate;
 
     [SerializeField]
-    private float maxViewDst = 225;
+    private int maxViewDst = 225;
+
+    [SerializeField]
+    private int maxDestroyOffset = 20;
 
     [SerializeField]
     private Transform viewer;
@@ -20,27 +23,38 @@ public class EndlessTerrain : MonoBehaviour
     [SerializeField]
     private float heightOffset;
 
-    public Action<Vector2> removeChunkDelegate;
+    public Action<Vector2> chunkBeingDeactivated;
+    public Action<Vector2> chunkBeingDestroyed;
 
     public Vector2 viewerPosition;
     private Vector2 viewerPositionOld;
 
     static MapGenerator mapGenerator;
-    int chunkSize;
-    int chunksVisibleInViewDst;
+    private int chunkSize;
+    //the max offset a chunk could have before it is no longer possible to see it
+    private int maxVisibleChunkOffset;
 
-    Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
-    public List<TerrainChunk> terrainChunksVisibleLastUpdate = new List<TerrainChunk>();
-    Dictionary<Vector2, TerrainChunk> terrainChunksToRemove = new Dictionary<Vector2, TerrainChunk>();
+    Dictionary<Vector2, TerrainChunk> terrainChunkContainer = new Dictionary<Vector2, TerrainChunk>();
+
+    public List<Vector2> coordsVisibleLastUpdate = new List<Vector2>();
+    public List<Vector2> coordsToRemove = new List<Vector2>();
+    //Dictionary<Vector2, TerrainChunk> terrainChunksToRemove = new Dictionary<Vector2, TerrainChunk>();
+
+    private List<Vector2> queuedCoordsToGenerate = new List<Vector2>();
+
+    public Action doneLoadingLevel;
 
     void Start()
     {
         mapGenerator = GetComponent<MapGenerator>();
 
         chunkSize = mapGenerator.MapChunkSize - 1;
-        chunksVisibleInViewDst = Mathf.RoundToInt(maxViewDst / chunkSize);
+        //the max offset a chunk could have before it is no longer possible to see it
+        maxVisibleChunkOffset = Mathf.RoundToInt(maxViewDst / chunkSize);
 
-        UpdateVisibleChunks();
+        UpdateVisibleChunks(new Vector2(0,0));
+
+        StartCoroutine(WaitForLevelLoaded());
     }
 
     void Update()
@@ -52,69 +66,129 @@ public class EndlessTerrain : MonoBehaviour
             if ((viewerPositionOld - viewerPosition).sqrMagnitude > sqrViewerMoveThresholdForChunkUpdate)
             {
                 viewerPositionOld = viewerPosition;
-                UpdateVisibleChunks();
+
+                Vector2 currentChunkCoord = new Vector2(Mathf.RoundToInt(viewerPosition.x / chunkSize), Mathf.RoundToInt(viewerPosition.y / chunkSize));
+
+                UpdateVisibleChunks(currentChunkCoord);
+                CheckOutOfRangeChunks(currentChunkCoord);
             }
+        }
+
+        if (queuedCoordsToGenerate.Count > 0)
+        {
+            Generate(queuedCoordsToGenerate[0]);
+            queuedCoordsToGenerate.Remove(queuedCoordsToGenerate[0]);
         }
     }
 
-    //adds or removes chunks that the player should see
-    void UpdateVisibleChunks()
+    IEnumerator WaitForLevelLoaded()
     {
-        for (int i = 0; i < terrainChunksVisibleLastUpdate.Count; i++)
+        yield return new WaitForFixedUpdate();
+        while (queuedCoordsToGenerate.Count > 0)
         {
-            terrainChunksToRemove.Add(terrainChunksVisibleLastUpdate[i].coordinates, terrainChunksVisibleLastUpdate[i]);
+            yield return new WaitForFixedUpdate();
         }
-        terrainChunksVisibleLastUpdate.Clear();
 
-        int currentChunkCoordX = Mathf.RoundToInt(viewerPosition.x / chunkSize);
-        int currentChunkCoordY = Mathf.RoundToInt(viewerPosition.y / chunkSize);
+        if (doneLoadingLevel != null)
+            doneLoadingLevel();
+    }
 
-        for (int yOffset = -chunksVisibleInViewDst; yOffset <= chunksVisibleInViewDst; yOffset++)
+    //adds or removes chunks that the player should see
+    void UpdateVisibleChunks(Vector2 _currentChunkCoord)
+    {
+        for (int i = 0; i < coordsVisibleLastUpdate.Count; i++)
         {
-            for (int xOffset = -chunksVisibleInViewDst; xOffset <= chunksVisibleInViewDst; xOffset++)
-            {
-                Vector2 viewedChunkCoord = new Vector2(currentChunkCoordX + xOffset, currentChunkCoordY + yOffset);
+            coordsToRemove.Add(coordsVisibleLastUpdate[i]);
+        }
+        coordsVisibleLastUpdate.Clear();
 
+        //check all chunks within the max offset of our chunks that we would be able to see
+        for (int yOffset = -maxVisibleChunkOffset; yOffset <= maxVisibleChunkOffset; yOffset++)
+        {
+            for (int xOffset = -maxVisibleChunkOffset; xOffset <= maxVisibleChunkOffset; xOffset++)
+            {
+                Vector2 viewedChunkCoord = new Vector2(_currentChunkCoord.x + xOffset, _currentChunkCoord.y + yOffset);
+
+                //if the chunk is within distance
                 if (Vector2.Distance(viewedChunkCoord * chunkSize, viewerPosition) < maxViewDst)
                 {
-                    if (!terrainChunkDictionary.ContainsKey(viewedChunkCoord))
+                    //check if i should make a new terrainchunk, or activate an old one
+                    if (!terrainChunkContainer.ContainsKey(viewedChunkCoord))
                     {
-                        terrainChunkDictionary.Add(viewedChunkCoord, new TerrainChunk(viewedChunkCoord, chunkSize, heightOffset, transform, objectToSpawn));
-                        terrainChunkDictionary[viewedChunkCoord].GenerateTerrain();
+                        queuedCoordsToGenerate.Add(viewedChunkCoord);
+                        terrainChunkContainer.Add(viewedChunkCoord, new TerrainChunk(viewedChunkCoord, chunkSize, heightOffset, transform, objectToSpawn));
+                        //CheckOutOfRangeChunks(_currentChunkCoord);
                     }
-                    else if (!terrainChunkDictionary[viewedChunkCoord].isVisible)
+                    else if (!terrainChunkContainer[viewedChunkCoord].isVisible)
                     {
-                        terrainChunkDictionary[viewedChunkCoord].Activate();
+                        terrainChunkContainer[viewedChunkCoord].Activate();
+                        //CheckOutOfRangeChunks(_currentChunkCoord);
                     }
 
-                    terrainChunksVisibleLastUpdate.Add(terrainChunkDictionary[viewedChunkCoord]);
-                    terrainChunksToRemove.Remove(viewedChunkCoord);
+                    coordsVisibleLastUpdate.Add(viewedChunkCoord);
+                    coordsToRemove.Remove(viewedChunkCoord);
                 }
             }
         }
 
-        foreach (var key in terrainChunksToRemove.Keys)
-        {
-            terrainChunksToRemove[key].Deactivate(removeChunkDelegate);
+        for (int i = 0; i < coordsToRemove.Count; i++) {
+            terrainChunkContainer[coordsToRemove[i]].Deactivate(chunkBeingDestroyed);
         }
-        terrainChunksToRemove.Clear();
+        coordsToRemove.Clear();
+    }
+
+    //checks for chunks out of range and activates and removes it if it is out of range
+    private void CheckOutOfRangeChunks(Vector2 _currentChunkCoord) {
+        List<Vector2> coordsToRemove = new List<Vector2>();
+
+        foreach (Vector2 coord in terrainChunkContainer.Keys)
+        {
+            Vector2 offset = _currentChunkCoord - coord;
+
+            if (Mathf.Abs(offset.x) > maxDestroyOffset || Mathf.Abs(offset.y) > maxDestroyOffset)
+            {
+                coordsToRemove.Add(coord);
+            }
+        }
+
+        for (int i = 0; i < coordsToRemove.Count; i++)
+        {
+            if (queuedCoordsToGenerate.Contains(coordsToRemove[i]))
+            {
+                terrainChunkContainer[coordsToRemove[i]].DestroyChunk(chunkBeingDestroyed, false);
+                terrainChunkContainer.Remove(coordsToRemove[i]);
+                queuedCoordsToGenerate.Remove(coordsToRemove[i]);
+            }
+            else
+            {
+                terrainChunkContainer[coordsToRemove[i]].DestroyChunk(chunkBeingDestroyed, true);
+            }
+            terrainChunkContainer.Remove(coordsToRemove[i]);
+        }
     }
 
     public Transform GetTerrainChunkTransfrom(Vector2 _coordinates)
     {
-        return terrainChunkDictionary[_coordinates].meshObject.transform;
+        return terrainChunkContainer[_coordinates].meshObject.transform;
+    }
+
+    private void Generate(Vector2 _coord) {
+        //FindObjectOfType<DebugGrid>().SpawnEditableMessage("Generated", _coord, "ExistingMode", 10);
+        mapGenerator.GenerateMap(_coord);
     }
 
     public class TerrainChunk
     {
         public GameObject meshObject;
-        public Vector2 coordinates;
+        public Vector2 coordinate;
 
         public bool isVisible = true;
 
         public TerrainChunk(Vector2 _coord, int _size, float _heightOffset, Transform _parent, GameObject _objectToSpawn)
         {
-            coordinates = _coord;
+            coordinate = _coord;
+            //FindObjectOfType<DebugGrid>().SpawnUniqueMessage(coordinate.ToString(), coordinate, 30, false);
+
             Vector2 position = _coord * _size;
             Vector3 positionV3 = new Vector3(position.x, _heightOffset, position.y);
 
@@ -126,32 +200,34 @@ public class EndlessTerrain : MonoBehaviour
             }
         }
 
-        public void GenerateTerrain()
-        {
-            mapGenerator.RequestGenerateMap(coordinates);
-        }
-
         public void Activate()
         {
+            //FindObjectOfType<DebugGrid>().SpawnEditableMessage("Activated", coordinate, "ExistingMode", 10);
             isVisible = true;
-            GenerateTerrain();
             meshObject.SetActive(true);
         }
 
-        public void Deactivate(Action<Vector2> _removeChunkDelegate)
+        public void Deactivate(Action<Vector2> _chunkBeingDeactivated)
         {
+            //FindObjectOfType<DebugGrid>().SpawnEditableMessage("Deactivated", coordinate, "ExistingMode", 10);
             isVisible = false;
-            RemoveChildren(_removeChunkDelegate);
             meshObject.SetActive(false);
         }
 
-        private void RemoveChildren(Action<Vector2> _removeChunkDelegate)
+        public void DestroyChunk(Action<Vector2> _chunkBeingDestroyed, bool _exists)
+        {
+            //FindObjectOfType<DebugGrid>().SpawnEditableMessage("Destroyed", coordinate, "ExistingMode", 10);
+            if (_exists && _chunkBeingDestroyed != null)
+                _chunkBeingDestroyed(coordinate);
+
+            RemoveChildren();
+            Destroy(meshObject);
+        }
+
+        private void RemoveChildren()
         {
             foreach (Transform child in meshObject.transform)
             {
-                if (_removeChunkDelegate != null)
-                    _removeChunkDelegate(coordinates);
-
                 Destroy(child.gameObject);
             }
         }

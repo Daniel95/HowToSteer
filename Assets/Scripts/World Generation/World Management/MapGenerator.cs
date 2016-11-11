@@ -5,7 +5,6 @@ using System;
 
 public class MapGenerator : MonoBehaviour
 {
-
     private enum DrawMode { NoiseMap, ColourMap, VoxelMap, MeshMap };
     [SerializeField]
     private DrawMode drawMode;
@@ -38,16 +37,13 @@ public class MapGenerator : MonoBehaviour
     [SerializeField]
     public bool autoUpdate = true;
 
-    public Action doneLoadingLevel;
-
-    private List<Vector2> QueuedMapdataPositionsToGenerate = new List<Vector2>();
-
     public static Dictionary<Vector2, MapData> mapDataContainer = new Dictionary<Vector2, MapData>();
 
     private MeshSpawner meshSpawner;
 
     private EnvironmentGenerator environmentGenerator;
     private LevelGenerator levelGenerator;
+    private EndlessTerrain endlessTerrain;
 
     private NeighbourKnowledgeQue neighbourKnowledgeQue;
 
@@ -55,57 +51,39 @@ public class MapGenerator : MonoBehaviour
     {
         mapDataContainer.Clear();
 
-        meshSpawner = GetComponent<MeshSpawner>();
-        environmentGenerator = GetComponent<EnvironmentGenerator>();
         levelGenerator = GetComponent<LevelGenerator>();
+        environmentGenerator = GetComponent<EnvironmentGenerator>();
+        meshSpawner = GetComponent<MeshSpawner>();
+
         neighbourKnowledgeQue = GetComponent<NeighbourKnowledgeQue>();
         seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
-
-        StartCoroutine(WaitForLevelLoaded());
     }
 
-    public void GenerateMapInEditor()
+    void OnEnable()
     {
-        levelGenerator = GetComponent<LevelGenerator>();
-        MapData mapData = GetMapData(offset);
+        endlessTerrain = GetComponent<EndlessTerrain>();
+        endlessTerrain.chunkBeingDestroyed += DestroyFarAwayChunk;
+    }
 
-        mapData = levelGenerator.GenerateLevel(mapData, mapChunkSize);
+    void OnDisable()
+    {
+        if (endlessTerrain.chunkBeingDestroyed != null)
+            endlessTerrain.chunkBeingDestroyed -= DestroyFarAwayChunk;
+    }
 
-        //NoiseMap
-        if (drawMode == DrawMode.NoiseMap)
-        {
-            GetComponent<TextureDisplay>().DrawTexture(TextureGenerator.TextureFromHeightMap(mapData.noiseMap));
-        }
-        //ColourMap
-        else if (drawMode == DrawMode.ColourMap)
-        {
-            Color[] colourMap = GetComponent<ColourMapConverter>().GenerateColorMap(mapData.noiseMap, mapChunkSize);
-
-            GetComponent<TextureDisplay>().DrawTexture(TextureGenerator.TextureFromColourMap(colourMap, mapChunkSize, mapChunkSize));
-        }
-        else if (drawMode == DrawMode.MeshMap)
-        {
-            GetComponent<MeshSpawner>().SpawnMesh(mapData, heightCurve, levelGenerator.obstacleTypes, mapData.coordinates, mapChunkSize, true);
-        }
-        //CaveMap
-        else if (drawMode == DrawMode.VoxelMap)
-        {
-            GetComponent<CubesSpawner>().SpawnCubes(mapData, levelGenerator.obstacleTypes, heightCurve.keys[0].time, mapData.coordinates, mapChunkSize, true);
-        }
+    private void DestroyFarAwayChunk(Vector2 _coordinate)
+    {
+        //if this coord doesnt exists in the mapDataContainer, it was destroyed before leaving the QueuedCoordsToGenerate queue
+        neighbourKnowledgeQue.RemoveNeighbourKnowledge(_coordinate);
+        levelGenerator.RemoveIslandData(_coordinate);
+        meshSpawner.RemoveMeshTerrain(_coordinate);
+        mapDataContainer.Remove(_coordinate);
     }
 
     //check if we need to rebuild an existing mapdata, or a new one
-    private void CheckHowToBuild(MapData _mapData)
+    public void GenerateMap(Vector2 _coord)
     {
-        //generate the mapdata how it existed
-        if (mapDataContainer.ContainsKey(_mapData.coordinates))
-        {
-            CreateMap(_mapData);
-        }
-        else // generate a new mapdata
-        {
-            GenerateBiome(_mapData);
-        }
+        GenerateBiome( RetrieveMapData(_coord));
     }
 
     //first phase of generating
@@ -113,9 +91,9 @@ public class MapGenerator : MonoBehaviour
     //after that we enter the StartNeighboursExistQueue 
     private void GenerateBiome(MapData _mapData)
     {
-        _mapData.levelMode = environmentGenerator.GetBiomeMode(_mapData.coordinates);
+        _mapData.levelMode = environmentGenerator.GetBiomeMode(_mapData.coordinate);
         _mapData = neighbourKnowledgeQue.GetAllNeighbours(_mapData);
-        mapDataContainer.Add(_mapData.coordinates, _mapData);
+        mapDataContainer.Add(_mapData.coordinate, _mapData);
 
         GenerateEnviroment(_mapData);
     }
@@ -126,9 +104,9 @@ public class MapGenerator : MonoBehaviour
         _mapData = environmentGenerator.GenerateEnvironment(_mapData, mapChunkSize);
         _mapData.generatedEnviromentComplete = true;
 
-        mapDataContainer[_mapData.coordinates] = _mapData;
-
-        neighbourKnowledgeQue.StartNeighboursEnviromentQueue(_mapData.coordinates, _mapData.allNeighboursCoords, GenerateLevel);
+        mapDataContainer[_mapData.coordinate] = _mapData;
+        //FindObjectOfType<DebugGrid>().SpawnEditableMessage("[___]", _mapData.coordinate, "GeneratePhase");
+        neighbourKnowledgeQue.StartNeighboursEnviromentQueue(_mapData.coordinate, _mapData.allNeighboursCoords, GenerateLevel);
     }
 
     //third phase of generating, edits the noise to create a level
@@ -137,43 +115,15 @@ public class MapGenerator : MonoBehaviour
         _mapData = levelGenerator.GenerateLevel(_mapData, mapChunkSize);
         _mapData.generatedLevelComplete = true;
 
-        mapDataContainer[_mapData.coordinates] = _mapData;
-
-        neighbourKnowledgeQue.StartNeighboursLevelQueue(_mapData.coordinates, _mapData.allNeighboursCoords, CreateMap);
+        mapDataContainer[_mapData.coordinate] = _mapData;
+        //FindObjectOfType<DebugGrid>().SpawnEditableMessage("__________", _mapData.coordinate, "GeneratePhase");
+        neighbourKnowledgeQue.StartNeighboursLevelQueue(_mapData.coordinate, _mapData.allNeighboursCoords, CreateMap);
     }
 
     //generates the map how it is given, without editing it.
     private void CreateMap(MapData _mapData)
     {
-        meshSpawner.SpawnMesh(_mapData, heightCurve, levelGenerator.obstacleTypes, _mapData.coordinates, mapChunkSize);
-    }
-
-    public void RequestGenerateMap(Vector2 _position)
-    {
-        QueuedMapdataPositionsToGenerate.Add(_position);
-    }
-
-    //check the first mapdata in the mapdata and generate it, then remove it out of the dict, continue next frame
-    void Update()
-    {
-        if (QueuedMapdataPositionsToGenerate.Count > 0 && Frames.frames % Frames.one == 0)
-        {
-            CheckHowToBuild(RetrieveMapData(QueuedMapdataPositionsToGenerate[0]));
-            QueuedMapdataPositionsToGenerate.Remove(QueuedMapdataPositionsToGenerate[0]);
-        }
-    }
-
-    IEnumerator WaitForLevelLoaded()
-    {
-
-        yield return new WaitForFixedUpdate();
-        while (QueuedMapdataPositionsToGenerate.Count > 0)
-        {
-            yield return new WaitForFixedUpdate();
-        }
-
-        if (doneLoadingLevel != null)
-            doneLoadingLevel();
+        meshSpawner.SpawnMesh(_mapData, heightCurve, levelGenerator.obstacleTypes, _mapData.coordinate, mapChunkSize);
     }
 
     //returns a new or existing map
@@ -209,18 +159,6 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    struct MapThreadInfo<T>
-    {
-        public readonly Action<T> callBack;
-        public readonly T parameter;
-
-        public MapThreadInfo(Action<T> _callBack, T _parameter)
-        {
-            this.callBack = _callBack;
-            this.parameter = _parameter;
-        }
-    }
-
     public int MapChunkSize
     {
         get { return mapChunkSize; }
@@ -236,20 +174,19 @@ public class MapData
 {
     public float[,] noiseMap;
     public ObstacleData[,] obstacleData;
-    public Vector2 coordinates;
+    public Vector2 coordinate;
     public EnumTypes.BiomeMode levelMode;
     public List<Vector2> allNeighboursCoords;
     public List<Vector2> directNeighbourCoords;
     public List<Vector2> cornerNeighbourCoords;
-    public List<Vector2> cantOverwrite;
 
     public bool generatedEnviromentComplete;
     public bool generatedLevelComplete;
 
-    public MapData(float[,] _noiseMap, Vector2 _coordinates, int _mapChunkSize)
+    public MapData(float[,] _noiseMap, Vector2 _coordinate, int _mapChunkSize)
     {
         noiseMap = _noiseMap;
-        coordinates = _coordinates;
+        coordinate = _coordinate;
         obstacleData = new ObstacleData[_mapChunkSize, _mapChunkSize];
         levelMode = EnumTypes.BiomeMode.Land;
         allNeighboursCoords = new List<Vector2>();
@@ -257,6 +194,5 @@ public class MapData
         cornerNeighbourCoords = new List<Vector2>();
         generatedEnviromentComplete = false;
         generatedLevelComplete = false;
-        cantOverwrite = new List<Vector2>();
     }
 }
