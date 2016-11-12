@@ -54,6 +54,7 @@ public class MeshData
         triangles = new int[(meshWidth - 1) * (meshHeight - 1) * 6];
     }
 
+    //add the next three triangles
     public void AddTriangle(int a, int b, int c)
     {
         triangles[triangleIndex] = a;
@@ -62,7 +63,8 @@ public class MeshData
         triangleIndex += 3;
     }
 
-    public Mesh CreateMesh()
+    //returns the mesh
+    public Mesh GetMesh()
     {
         Mesh mesh = new Mesh();
         mesh.vertices = vertices;

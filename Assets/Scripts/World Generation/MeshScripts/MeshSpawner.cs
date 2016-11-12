@@ -66,7 +66,7 @@ public class MeshSpawner : MonoBehaviour
     void Update() {
         if (Frames.frames % Frames.framesToSkipLong == 0)
         {
-            UpdateAllMeshes(endlessTerrain.viewerPosition);
+            UpdateAllMeshes(endlessTerrain.ViewerPosition);
         }
     }
 
@@ -198,7 +198,7 @@ public class MeshSpawner : MonoBehaviour
 
         public void GenerateLODMesh(float[,] _noiseMap, float _meshHeightMultiplier, AnimationCurve _meshHeightCurve)
         {
-            mesh = MeshGenerator.GenerateTerrainMesh(_noiseMap, _meshHeightMultiplier, _meshHeightCurve, lod).CreateMesh();
+            mesh = MeshGenerator.GenerateTerrainMesh(_noiseMap, _meshHeightMultiplier, _meshHeightCurve, lod).GetMesh();
             hasMesh = true;
         }
     }

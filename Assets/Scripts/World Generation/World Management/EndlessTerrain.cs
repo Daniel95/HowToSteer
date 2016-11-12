@@ -26,7 +26,7 @@ public class EndlessTerrain : MonoBehaviour
     public Action<Vector2> chunkBeingDeactivated;
     public Action<Vector2> chunkBeingDestroyed;
 
-    public Vector2 viewerPosition;
+    private Vector2 viewerPosition;
     private Vector2 viewerPositionOld;
 
     static MapGenerator mapGenerator;
@@ -36,9 +36,8 @@ public class EndlessTerrain : MonoBehaviour
 
     Dictionary<Vector2, TerrainChunk> terrainChunkContainer = new Dictionary<Vector2, TerrainChunk>();
 
-    public List<Vector2> coordsVisibleLastUpdate = new List<Vector2>();
-    public List<Vector2> coordsToRemove = new List<Vector2>();
-    //Dictionary<Vector2, TerrainChunk> terrainChunksToRemove = new Dictionary<Vector2, TerrainChunk>();
+    private List<Vector2> coordsVisibleLastUpdate = new List<Vector2>();
+    private List<Vector2> coordsToRemove = new List<Vector2>();
 
     private List<Vector2> queuedCoordsToGenerate = new List<Vector2>();
 
@@ -117,12 +116,10 @@ public class EndlessTerrain : MonoBehaviour
                     {
                         queuedCoordsToGenerate.Add(viewedChunkCoord);
                         terrainChunkContainer.Add(viewedChunkCoord, new TerrainChunk(viewedChunkCoord, chunkSize, heightOffset, transform, objectToSpawn));
-                        //CheckOutOfRangeChunks(_currentChunkCoord);
                     }
                     else if (!terrainChunkContainer[viewedChunkCoord].isVisible)
                     {
                         terrainChunkContainer[viewedChunkCoord].Activate();
-                        //CheckOutOfRangeChunks(_currentChunkCoord);
                     }
 
                     coordsVisibleLastUpdate.Add(viewedChunkCoord);
@@ -173,7 +170,6 @@ public class EndlessTerrain : MonoBehaviour
     }
 
     private void Generate(Vector2 _coord) {
-        //FindObjectOfType<DebugGrid>().SpawnEditableMessage("Generated", _coord, "ExistingMode", 10);
         mapGenerator.GenerateMap(_coord);
     }
 
@@ -187,7 +183,6 @@ public class EndlessTerrain : MonoBehaviour
         public TerrainChunk(Vector2 _coord, int _size, float _heightOffset, Transform _parent, GameObject _objectToSpawn)
         {
             coordinate = _coord;
-            //FindObjectOfType<DebugGrid>().SpawnUniqueMessage(coordinate.ToString(), coordinate, 30, false);
 
             Vector2 position = _coord * _size;
             Vector3 positionV3 = new Vector3(position.x, _heightOffset, position.y);
@@ -202,21 +197,18 @@ public class EndlessTerrain : MonoBehaviour
 
         public void Activate()
         {
-            //FindObjectOfType<DebugGrid>().SpawnEditableMessage("Activated", coordinate, "ExistingMode", 10);
             isVisible = true;
             meshObject.SetActive(true);
         }
 
         public void Deactivate(Action<Vector2> _chunkBeingDeactivated)
         {
-            //FindObjectOfType<DebugGrid>().SpawnEditableMessage("Deactivated", coordinate, "ExistingMode", 10);
             isVisible = false;
             meshObject.SetActive(false);
         }
 
         public void DestroyChunk(Action<Vector2> _chunkBeingDestroyed, bool _exists)
         {
-            //FindObjectOfType<DebugGrid>().SpawnEditableMessage("Destroyed", coordinate, "ExistingMode", 10);
             if (_exists && _chunkBeingDestroyed != null)
                 _chunkBeingDestroyed(coordinate);
 
@@ -236,5 +228,10 @@ public class EndlessTerrain : MonoBehaviour
     public float MaxViewDistance
     {
         get { return maxViewDst; }
+    }
+
+    public Vector2 ViewerPosition
+    {
+        get { return viewerPosition; }
     }
 }

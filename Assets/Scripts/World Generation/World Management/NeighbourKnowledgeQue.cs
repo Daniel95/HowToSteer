@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 public class NeighbourKnowledgeQue : MonoBehaviour {
@@ -30,13 +29,9 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
                 if (_mapData.coordinate != new Vector2(x, y))
                 {
                     if (totalCounter % 2 == 0)
-                    {
                         cornerNeighboursCoords.Add(new Vector2(x, y));
-                    }
                     else
-                    {
                         directNeighbourCoords.Add(new Vector2(x, y));
-                    }
 
                     allNeighbours.Add(new Vector2(x, y));
                 }
@@ -116,12 +111,8 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
     }
 
     public void RemoveNeighbourKnowledge(Vector2 _coord) {
-
-        //FindObjectOfType<DebugGrid>().SpawnEditableMessage("/////////", _coord, "GeneratePhase");
-        //FindObjectOfType<DebugGrid>().SpawnEditableMessage("", _coord, "ActiveCount", -10);
         DecrementNeighboursActiveCount(_coord, GeneratedEnvironmentMapdataInQueueContainer);
         GeneratedEnvironmentMapdataInQueueContainer.Remove(_coord);
-        DecrementNeighboursActiveCount(_coord, GeneratedLevelMapdataInQueueContainer);
         GeneratedLevelMapdataInQueueContainer.Remove(_coord);
     }
 
@@ -157,14 +148,12 @@ public class NeighbourKnowledgeQue : MonoBehaviour {
         //returns true when all neighbours are active.
         public bool IncrementActiveNeighboursCount() {
             activeNeighboursCount++;
-            //FindObjectOfType<DebugGrid>().SpawnEditableMessage(activeNeighboursCount.ToString(), coordinate, "ActiveCount", -10);
             return CheckAllNeighboursActive();
         }
 
         public void DecrementActiveNeighoursCount()
         {
             activeNeighboursCount--;
-            //FindObjectOfType<DebugGrid>().SpawnEditableMessage(activeNeighboursCount.ToString(), coordinate, "ActiveCount", -10);
         }
 
         private bool CheckAllNeighboursActive() {

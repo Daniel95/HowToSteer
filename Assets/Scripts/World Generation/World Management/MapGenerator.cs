@@ -10,9 +10,6 @@ public class MapGenerator : MonoBehaviour
     private DrawMode drawMode;
 
     [SerializeField]
-    private NoiseGenerator.NormalizeMode normalizeMode;
-
-    [SerializeField]
     private AnimationCurve heightCurve;
 
     [SerializeField]
@@ -105,7 +102,6 @@ public class MapGenerator : MonoBehaviour
         _mapData.generatedEnviromentComplete = true;
 
         mapDataContainer[_mapData.coordinate] = _mapData;
-        //FindObjectOfType<DebugGrid>().SpawnEditableMessage("[___]", _mapData.coordinate, "GeneratePhase");
         neighbourKnowledgeQue.StartNeighboursEnviromentQueue(_mapData.coordinate, _mapData.allNeighboursCoords, GenerateLevel);
     }
 
@@ -116,7 +112,6 @@ public class MapGenerator : MonoBehaviour
         _mapData.generatedLevelComplete = true;
 
         mapDataContainer[_mapData.coordinate] = _mapData;
-        //FindObjectOfType<DebugGrid>().SpawnEditableMessage("__________", _mapData.coordinate, "GeneratePhase");
         neighbourKnowledgeQue.StartNeighboursLevelQueue(_mapData.coordinate, _mapData.allNeighboursCoords, CreateMap);
     }
 
@@ -142,7 +137,7 @@ public class MapGenerator : MonoBehaviour
     //generates noise depening on the offset
     private MapData GetMapData(Vector2 _offset)
     {
-        float[,] noiseMap = NoiseGenerator.GenerateNoise(mapChunkSize, mapChunkSize, seed, noiseScale, octaves, persistance, lacunarity, _offset * (mapChunkSize - 1), normalizeMode);
+        float[,] noiseMap = NoiseGenerator.GenerateNoise(mapChunkSize, mapChunkSize, seed, noiseScale, octaves, persistance, lacunarity, _offset * (mapChunkSize - 1));
 
         return new MapData(noiseMap, _offset, mapChunkSize);
     }
