@@ -10,30 +10,46 @@ public class EnvironmentGenerator : MonoBehaviour {
     private bool randomStartPos = true;
 
     [SerializeField]
+    private float biomeScale = 25;
+
+    [SerializeField]
     private EnumTypes.BiomeMode[] biomeModes;
 
-    private int mapTypeSeed;
+    private Vector2 mapTypeSeed;
 
     void Start()
     {
+        if (biomeScale <= 0)
+            biomeScale = 0.0001f;
+
         if (randomStartPos)
         {
-            mapTypeSeed = Random.Range(int.MinValue, int.MaxValue);
+            System.Random prng = new System.Random(Random.Range(int.MinValue, int.MaxValue));
+
+            mapTypeSeed.x = prng.Next(-100000, 100000);
+            mapTypeSeed.y = prng.Next(-100000, 100000);
+
+            //mapTypeSeed = 
+            //change the maptypeseed until we get a seed where V(0,0) is land
             while (GetBiomeMode(new Vector2(0, 0)) != EnumTypes.BiomeMode.Land)
             {
-                mapTypeSeed = Random.Range(int.MinValue, int.MaxValue);
+                mapTypeSeed.x = prng.Next(-100000, 100000);
+                mapTypeSeed.y = prng.Next(-100000, 100000);
             }
         }
         else
         {
-            mapTypeSeed = 0;
+            mapTypeSeed = new Vector2(0, 0);
         }
     }
 
     public EnumTypes.BiomeMode GetBiomeMode(Vector2 _coords)
     {
-        int currBioMode = Mathf.FloorToInt(Mathf.PerlinNoise((_coords.x + mapTypeSeed) / 10, (_coords.y + mapTypeSeed) / 10) * biomeModes.Length);
+        float xVal = (_coords.x + mapTypeSeed.x) / biomeScale;
+        float yVal = (_coords.y + mapTypeSeed.y) / biomeScale;
 
+        float perlinValue = Mathf.PerlinNoise(xVal, yVal);
+        int currBioMode = Mathf.FloorToInt(Mathf.Abs(perlinValue) * biomeModes.Length);
         return biomeModes[currBioMode];
     }
 
@@ -71,6 +87,7 @@ public class EnvironmentGenerator : MonoBehaviour {
                 }
             }
 
+            //code for fixing the corners next to water chunks...
             /*
             for (int i = 0; i < _mapData.cornerNeighbourCoords.Count; i++)
             {

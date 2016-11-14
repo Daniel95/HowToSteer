@@ -90,7 +90,8 @@ public class TerrainTrail : MonoBehaviour {
                 amountSkippedCounter = 0;
                 while (chunkCounter < chunksPassedThrough.Count)
                 {
-                    meshSpawner.MeshTerrainDictonary[chunksPassedThrough[chunkCounter]].UpdateNoiseMesh(MapGenerator.mapDataContainer[chunksPassedThrough[chunkCounter]].noiseMap);
+                    if(meshSpawner.MeshTerrainDictonary.ContainsKey(chunksPassedThrough[chunkCounter]))
+                        meshSpawner.MeshTerrainDictonary[chunksPassedThrough[chunkCounter]].UpdateNoiseMesh(MapGenerator.mapDataContainer[chunksPassedThrough[chunkCounter]].noiseMap);
                     chunkCounter++;
                     yield return new WaitForFixedUpdate();
                 }

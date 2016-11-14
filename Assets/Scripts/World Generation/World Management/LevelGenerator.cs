@@ -11,9 +11,6 @@ public class LevelGenerator : MonoBehaviour
     private float minSpecialSpawnHeight = 0.55f;
 
     [SerializeField]
-    private int spawnLocationOffset;
-
-    [SerializeField]
     private int minSpecialAmount = 0;
 
     [SerializeField]

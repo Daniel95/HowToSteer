@@ -39,6 +39,9 @@ public class Islands : MonoBehaviour {
     [SerializeField]
     private float pathSmoothness = 0.5f;
 
+    [SerializeField]
+    private float islandSpecialSpawnChange = 0.75f;
+
     private Dictionary<Vector2, List<IslandData>> islandsChunkContainer = new Dictionary<Vector2, List<IslandData>>();
 
     public MapData GenerateIslands(MapData _mapData, int _mapChunkSize, float _heigtCurveStartValue)
@@ -75,7 +78,9 @@ public class Islands : MonoBehaviour {
             Vector2 spawnPos = new Vector2(Random.Range(randomSize, _mapChunkSize - randomSize), Random.Range(randomSize, _mapChunkSize - randomSize));
 
             _mapData = NoiseEditor.FlattenCircleRandomized(_mapData, 0, true, EnumTypes.FigureMode.Circle, spawnPos, randomSize, _mapChunkSize, Random.Range(minIslandRandomizedForm, maxIslandRandomizedForm));
-            obstacleData[(int)spawnPos.x, (int)spawnPos.y].nodeValue = 2;
+
+            if (islandSpecialSpawnChange > Random.Range(0, 0.99f))
+                obstacleData[(int)spawnPos.x, (int)spawnPos.y].nodeValue = 2;
 
             MakeIslandConnections(spawnPos, pathWidth, _mapData, _mapChunkSize);
 

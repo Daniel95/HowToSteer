@@ -54,7 +54,7 @@ public class MeshSpawner : MonoBehaviour
             {
                 if (_mapData.obstacleData[x, y].nodeValue != 0 && _mapData.noiseMap[x, y] <= _heightCurve.keys[0].time)
                 {
-                    Vector3 spawnPos = parentObject.transform.position + new Vector3(x - (_mapChunkSize - 1) / 2, _obstacleTypes[_mapData.obstacleData[x, y].nodeValue].obstacle.transform.localScale.y + 1, (_mapChunkSize - y) - (_mapChunkSize + 2) / 2);
+                    Vector3 spawnPos = parentObject.transform.position + new Vector3(x - (_mapChunkSize - 1) / 2, _obstacleTypes[_mapData.obstacleData[x, y].nodeValue].obstacle.transform.localScale.y + 0.5f, (_mapChunkSize - y) - (_mapChunkSize + 2) / 2);
 
                     GameObject obstacle = Instantiate(_obstacleTypes[_mapData.obstacleData[x, y].nodeValue].obstacle, spawnPos, rot) as GameObject;
                     obstacle.transform.parent = parentObject;
