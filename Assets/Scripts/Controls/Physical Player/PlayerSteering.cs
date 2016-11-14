@@ -6,7 +6,7 @@ public class PlayerSteering : MonoBehaviour
     private Transform cameraView;
 
     [SerializeField]
-    private float maxRotateSpeed = 0.6f;
+    private float maxRotateSpeed = 170;
 
     // Update is called once per frame
     void Update()
